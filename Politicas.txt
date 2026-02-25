@@ -1,0 +1,74 @@
+Política de Privacidad de Arqueo
+Fecha de vigencia: 19 de febrero de 2026
+
+En Arqueo, respetamos y protegemos la privacidad de nuestros usuarios. Esta Política de Privacidad explica qué información recopilamos, cómo la usamos y cuáles son tus derechos.
+
+1. Responsable del tratamiento de datos
+El responsable del tratamiento de los datos es el titular de la aplicación Arqueo.
+Correo de contacto: [TU_CORREO_DE_CONTACTO]
+Dirección (opcional): [TU_DIRECCIÓN]
+
+2. Información que recopilamos
+La aplicación puede recopilar y procesar las siguientes categorías de datos:
+
+Datos de autenticación y cuenta: usuario, perfil autorizado.
+Datos operativos del formulario de arqueo: información de punto de venta, montos, resultados de validaciones y respuestas del checklist.
+Datos obtenidos por QR: IP, nombre, cédula, sucursal.
+Datos de ubicación: latitud y longitud al momento de registrar información.
+Imágenes: evidencias fotográficas cargadas por el usuario.
+Firmas digitales: firma de auditoría y firma de colocador.
+Datos de cronograma: estado de visita y observaciones asociadas.
+3. Finalidad del tratamiento
+Usamos la información para:
+
+Autenticar usuarios y controlar acceso por perfil.
+Registrar y gestionar arqueos operativos.
+Actualizar cronogramas y estados de visitas.
+Enviar evidencia (imagen, ubicación, firma) para soporte y trazabilidad.
+Generar reportes internos y control de cumplimiento.
+4. Base legal y legitimación
+El tratamiento de datos se realiza con base en:
+
+La ejecución de la relación laboral/comercial/operativa con la organización usuaria.
+El consentimiento del usuario para permisos del dispositivo (cámara, ubicación, galería), cuando aplique.
+El cumplimiento de obligaciones operativas y de control interno.
+5. Compartición de datos
+No vendemos datos personales.
+La información se comparte únicamente con:
+
+Servicios backend propios de la organización (endpoints PHP del sistema Arqueo).
+Proveedores tecnológicos necesarios para operar la app (por ejemplo, infraestructura de hosting y servicios de distribución de apps).
+6. Permisos del dispositivo
+Arqueo solicita permisos para:
+
+Cámara: lectura de QR y captura de evidencia.
+Ubicación: registro de coordenadas en operaciones.
+Galería/archivos: selección de imágenes de observación.
+Estos permisos se usan exclusivamente para funciones propias de la aplicación.
+
+7. Conservación de datos
+Los datos se conservan durante el tiempo necesario para cumplir finalidades operativas, legales y de auditoría interna, o hasta que el responsable del tratamiento determine su eliminación conforme a la normativa aplicable.
+
+8. Seguridad de la información
+Aplicamos medidas técnicas y organizativas razonables para proteger la información contra acceso no autorizado, pérdida, alteración o divulgación indebida.
+
+9. Derechos del titular de los datos
+El usuario puede solicitar, según la normativa aplicable:
+
+Acceso a sus datos.
+Rectificación de información inexacta.
+Supresión cuando legalmente proceda.
+Revocatoria de consentimiento cuando aplique.
+Limitación u oposición al tratamiento en los casos permitidos.
+Para ejercer estos derechos, contacta a: [TU_CORREO_DE_CONTACTO].
+
+10. Menores de edad
+La aplicación no está dirigida a menores de edad. Si se detecta tratamiento no autorizado de datos de menores, se tomarán medidas para su eliminación o bloqueo conforme a la ley.
+
+11. Cambios a esta política
+Podemos actualizar esta Política de Privacidad en cualquier momento. La versión vigente será publicada en el canal oficial definido por el responsable (sitio web o enlace de política en Play Store).
+
+12. Contacto
+Si tienes dudas sobre esta Política de Privacidad, escríbenos a:
+[TU_CORREO_DE_CONTACTO]
+
