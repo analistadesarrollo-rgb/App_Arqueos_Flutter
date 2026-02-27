@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +24,46 @@ class AppPalette {
   static const onAccent = Color(0xFF111827);
   static const success = Color(0xFF15803D);
   static const danger = Color(0xFFB91C1C);
+}
+
+String _formatThousandsWithDots(String value) {
+  final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+  if (digits.isEmpty) return '';
+
+  final buffer = StringBuffer();
+  int groupCounter = 0;
+  for (int i = digits.length - 1; i >= 0; i--) {
+    buffer.write(digits[i]);
+    groupCounter++;
+    if (groupCounter == 3 && i > 0) {
+      buffer.write('.');
+      groupCounter = 0;
+    }
+  }
+
+  return buffer.toString().split('').reversed.join();
+}
+
+class MoneyThousandsFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) {
+      return const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+    }
+
+    final formatted = _formatThousandsWithDots(digits);
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
 }
 
 Map<String, dynamic>? parsePossibleJson(dynamic responseBody) {
@@ -235,6 +276,7 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
   final cantidadDescargadosCtrl = TextEditingController();
   final totalDescargadosCtrl = TextEditingController();
   final nombreObservacionCtrl = TextEditingController();
+  final _moneyFormatter = MoneyThousandsFormatter();
 
   late final List<RaspaRow> raspasRows;
   late final List<PreguntaItem> preguntas;
@@ -262,6 +304,9 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
         maxLines: maxLines,
         onChanged: onChanged,
         keyboardType: numeric ? TextInputType.number : TextInputType.text,
+        inputFormatters: numeric
+            ? [FilteringTextInputFormatter.digitsOnly, _moneyFormatter]
+            : null,
         decoration: InputDecoration(hintText: hint),
       ),
     );
@@ -732,19 +777,62 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
   }
 
   void handleCaja() {
-    totalCajaCtrl.text =
-        (_toInt(totalMonedasCajaCtrl.text) +
-                _toInt(totalBilletesCajaCtrl.text) +
-                _toInt(totalPremiosCajaCtrl.text))
-            .toString();
+    final totalCaja =
+        _toInt(totalMonedasCajaCtrl.text) +
+        _toInt(totalBilletesCajaCtrl.text) +
+        _toInt(totalPremiosCajaCtrl.text);
+    totalCajaCtrl.text = _formatThousandsWithDots(totalCaja.toString());
   }
 
-  void handleCalcular() {
+  bool handleCalcular({bool validateRequired = false}) {
+    if (validateRequired) {
+      if (ventaBrutaCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Venta bruta se encuentra vacío');
+        return false;
+      }
+      if (baseEfectivoCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Base efectivo se encuentra vacío');
+        return false;
+      }
+      if (carteraCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Cartera se encuentra vacío');
+        return false;
+      }
+      if (chanceAbonadosCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Chance abonados se encuentra vacío');
+        return false;
+      }
+      if (chanceImpresosCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Chance impresos se encuentra vacío');
+        return false;
+      }
+      if (premiosPagadosCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Premios pagados se encuentra vacío');
+        return false;
+      }
+      if (efectivoCajaFuerteCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Efectivo caja fuerte se encuentra vacío');
+        return false;
+      }
+      if (tirillaRecaudoCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Tirilla recaudo se encuentra vacío');
+        return false;
+      }
+      if (totalMonedasCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Total monedas se encuentra vacío');
+        return false;
+      }
+      if (totalBilletesCtrl.text.trim().isEmpty) {
+        showAlert(context, 'Total billetes se encuentra vacío');
+        return false;
+      }
+    }
+
     final totalIngresos =
         _toInt(ventaBrutaCtrl.text) +
         _toInt(baseEfectivoCtrl.text) +
         _toInt(carteraCtrl.text);
-    totalIngresoCtrl.text = totalIngresos.toString();
+    totalIngresoCtrl.text = _formatThousandsWithDots(totalIngresos.toString());
 
     final totalEgresos =
         _toInt(chanceAbonadosCtrl.text) +
@@ -752,16 +840,19 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
         _toInt(premiosPagadosCtrl.text) +
         _toInt(efectivoCajaFuerteCtrl.text) +
         _toInt(tirillaRecaudoCtrl.text);
-    totalEgresosCtrl.text = totalEgresos.toString();
+    totalEgresosCtrl.text = _formatThousandsWithDots(totalEgresos.toString());
 
     final totalArqueo =
-        _toInt(totalMonedasCtrl.text) + _toInt(totalBilletesCtrl.text);
-    totalArqueoCtrl.text = totalArqueo.toString();
+        _toInt(totalBilletesCtrl.text) +
+        _toInt(totalMonedasCtrl.text) +
+        totalEgresos;
+    totalArqueoCtrl.text = _formatThousandsWithDots(totalArqueo.toString());
 
-    final sf = totalIngresos - totalArqueo;
+    final sf = totalArqueo - totalIngresos;
     sobranteFaltanteCtrl.text = sf > 0
-        ? 'SOBRANTE $sf'
-        : 'FALTANTE ${sf.abs()}';
+        ? 'SOBRANTE +$sf'
+        : 'FALTANTE -${sf.abs()}';
+    return true;
   }
 
   Future<void> handleEnviarArqueo() async {
@@ -782,7 +873,9 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
       return;
     }
 
-    handleCalcular();
+    if (!handleCalcular(validateRequired: true)) {
+      return;
+    }
     handleCaja();
     handleRollos();
     handleRaspas();
@@ -797,29 +890,29 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
       'puntodeventa': puntoVentaCtrl.text,
       'latitud': position?.latitude,
       'longitud': position?.longitude,
-      'ventabruta': ventaBrutaCtrl.text,
-      'baseefectivo': baseEfectivoCtrl.text,
-      'cartera': carteraCtrl.text,
-      'totalingreso': totalIngresoCtrl.text,
-      'chancesabonados': chanceAbonadosCtrl.text,
-      'chancespreimpresos': chanceImpresosCtrl.text,
-      'premiospagados': premiosPagadosCtrl.text,
-      'efectivocajafuerte': efectivoCajaFuerteCtrl.text,
-      'tirillarecaudo': tirillaRecaudoCtrl.text,
-      'totalegresos': totalEgresosCtrl.text,
-      'totalbilletes': totalBilletesCtrl.text,
-      'totalmonedas': totalMonedasCtrl.text,
-      'totalarqueo': totalArqueoCtrl.text,
+      'ventabruta': _plainNumber(ventaBrutaCtrl.text),
+      'baseefectivo': _plainNumber(baseEfectivoCtrl.text),
+      'cartera': _plainNumber(carteraCtrl.text),
+      'totalingreso': _plainNumber(totalIngresoCtrl.text),
+      'chancesabonados': _plainNumber(chanceAbonadosCtrl.text),
+      'chancespreimpresos': _plainNumber(chanceImpresosCtrl.text),
+      'premiospagados': _plainNumber(premiosPagadosCtrl.text),
+      'efectivocajafuerte': _plainNumber(efectivoCajaFuerteCtrl.text),
+      'tirillarecaudo': _plainNumber(tirillaRecaudoCtrl.text),
+      'totalegresos': _plainNumber(totalEgresosCtrl.text),
+      'totalbilletes': _plainNumber(totalBilletesCtrl.text),
+      'totalmonedas': _plainNumber(totalMonedasCtrl.text),
+      'totalarqueo': _plainNumber(totalArqueoCtrl.text),
       'sobrantefaltante': sobranteFaltanteCtrl.text,
-      'totalbilletescaja': totalBilletesCajaCtrl.text,
-      'totalmonedascaja': totalMonedasCajaCtrl.text,
-      'totalpremioscaja': totalPremiosCajaCtrl.text,
-      'total': totalCajaCtrl.text,
-      'rollos_bnet': rollosBnetCtrl.text,
-      'rollos_fisicos': rollosFisicosCtrl.text,
+      'totalbilletescaja': _plainNumber(totalBilletesCajaCtrl.text),
+      'totalmonedascaja': _plainNumber(totalMonedasCajaCtrl.text),
+      'totalpremioscaja': _plainNumber(totalPremiosCajaCtrl.text),
+      'total': _plainNumber(totalCajaCtrl.text),
+      'rollos_bnet': _plainNumber(rollosBnetCtrl.text),
+      'rollos_fisicos': _plainNumber(rollosFisicosCtrl.text),
       'diferencia': totalRollosCtrl.text,
-      'totaldescargados': cantidadDescargadosCtrl.text,
-      'totalvalor': totalDescargadosCtrl.text,
+      'totaldescargados': _plainNumber(cantidadDescargadosCtrl.text),
+      'totalvalor': _plainNumber(totalDescargadosCtrl.text),
       'imagen_observacion': imageBase64,
       'nombre_observacion': nombreObservacionCtrl.text,
       'firma_auditoria': firmaAuditoria,
@@ -832,11 +925,13 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
       final idx = i + 1;
       final suffix = idx == 1 ? '' : '$idx';
       body['nombre_juego$suffix'] = row.nombreJuego.text;
-      body['cantidad_bnet$suffix'] = row.cantidadBnet.text;
-      body['cantidad_fisicos$suffix'] = row.cantidadFisicos.text;
-      body['cantidad_faltante$suffix'] = row.cantidadFaltante.text;
-      body['cantidad_tiquete$suffix'] = row.cantidadTiquete.text;
-      body['descargado$suffix'] = row.descargado.text;
+      body['cantidad_bnet$suffix'] = _plainNumber(row.cantidadBnet.text);
+      body['cantidad_fisicos$suffix'] = _plainNumber(row.cantidadFisicos.text);
+      body['cantidad_faltante$suffix'] = _plainNumber(
+        row.cantidadFaltante.text,
+      );
+      body['cantidad_tiquete$suffix'] = _plainNumber(row.cantidadTiquete.text);
+      body['descargado$suffix'] = _plainNumber(row.descargado.text);
     }
 
     for (final p in preguntas) {
@@ -898,12 +993,16 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
       final faltante = _toInt(row.cantidadFaltante.text);
       final tiquete = _toInt(row.cantidadTiquete.text);
       final descargado = faltante * tiquete;
-      row.descargado.text = descargado.toString();
+      row.descargado.text = _formatThousandsWithDots(descargado.toString());
       cantidadDescargados += faltante;
       totalDescargados += descargado;
     }
-    cantidadDescargadosCtrl.text = cantidadDescargados.toString();
-    totalDescargadosCtrl.text = totalDescargados.toString();
+    cantidadDescargadosCtrl.text = _formatThousandsWithDots(
+      cantidadDescargados.toString(),
+    );
+    totalDescargadosCtrl.text = _formatThousandsWithDots(
+      totalDescargados.toString(),
+    );
   }
 
   void handleRollos() {
@@ -1562,7 +1661,11 @@ class _ArqueoFormScreenState extends State<ArqueoFormScreen>
     }
   }
 
-  int _toInt(String v) => int.tryParse(v.trim()) ?? 0;
+  int _toInt(String v) => int.tryParse(_plainNumber(v)) ?? 0;
+
+  String _plainNumber(String value) {
+    return value.replaceAll(RegExp(r'[^0-9]'), '');
+  }
 }
 
 class _ArqueoReplicaAppState extends State<ArqueoReplicaApp> {
